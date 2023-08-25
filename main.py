@@ -99,6 +99,7 @@ while True:
                     print_record(record_index + 1, dataList[record_index])
                 print_table_footer()
                 print_navigation_tips()
+                click.pause()
                 inner_button = keyboard.read_key()
                 match inner_button:
                     case 'right':
