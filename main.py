@@ -7,22 +7,20 @@ import random
 
 def print_menu():
     print('''
-                        МЕНЮ
-        ========================================
+                    МЕНЮ
+    ========================================
 
-        1. Показать справочник
-        2. Добавить контакт
-        3. Изменить контакт
-        4. Найти контакт(ы)        
-        5. Сгенерировать 20 контактов
+    1. Показать справочник
+    2. Добавить контакт
+    3. Изменить контакт
+    4. Найти контакт(ы)        
+    5. Сгенерировать 20 контактов
 
-        press ESC to exit''')
+    press ESC to exit''')
 
 
 def print_table_header():
     print('''
-                                            ТЕЛЕФОННАЯ КНИГА
-================================================================================================================
 |№     | Имя      |  Фамилия    | Отчество   | Организация                        | Раб. номер | Личн. номер   |
 ________________________________________________________________________________________________________________   
 ''')
@@ -30,8 +28,7 @@ ________________________________________________________________________________
 
 def print_table_footer():
     print('''
-================================================================================================================
-  
+================================================================================================================  
 ''')
 
 
@@ -49,6 +46,10 @@ def read_file(file_path):
 def generate_number(length):
     generated_number = "".join([str(random.randint(0, 9)) for _ in range(length)])
     return generated_number
+
+
+def print_navigation_tips():
+    print("SPACE вернуться в меню, → вперед, ← назад")
 
 
 def cls():
@@ -90,15 +91,24 @@ while True:
     button = keyboard.read_key()
     match button:
         case '1':
-            cls()
-            print_table_header()
-            local_index = 1
-            for rec in dataList:
-                print_record(local_index, rec)
-                local_index += 1
-            print_table_footer()
-            click.pause()
-            click.pause()
+            local_index = 0
+            while True:
+                cls()
+                print_table_header()
+                for record_index in range(local_index, min(local_index + 22, len(dataList))):
+                    print_record(record_index + 1, dataList[record_index])
+                print_table_footer()
+                print_navigation_tips()
+                inner_button = keyboard.read_key()
+                match inner_button:
+                    case 'right':
+                        if local_index + 22 <= len(dataList):
+                            local_index += 22
+                    case 'left':
+                        if local_index - 22 >= 0:
+                            local_index -= 22
+                    case 'space':
+                        break
 
         case '2':
             cls()
@@ -118,9 +128,14 @@ while True:
                 rec = dataList[int(local_index) - 1]
                 print_record(local_index, rec)
                 print_table_footer()
+
+                print("Нажимайте Enter если хотите оставить значение поля без изменений")
                 new_data = input_record()
-                dataList[int(local_index) - 1] = new_data
-                rewrite_file(db_path,dataList)
+                for key in new_data:
+                    if new_data[key] != '':
+                        dataList[int(local_index) - 1][key] = new_data[key]
+
+                rewrite_file(db_path, dataList)
             else:
                 print("Вы ввели некорректный номер. Уточните его и попробуйте снова.")
             click.pause()
@@ -133,20 +148,13 @@ while True:
             print_table_header()
             local_index = 1
             for rec in dataList:
-                if \
-                        (
-                        rec['first_name'].find(search_data['first_name']) != -1
-                        and
-                        rec['last_name'].find(search_data['last_name']) != -1
-                        and
-                        rec['father_name'].find(search_data['father_name']) != -1
-                        and
-                        rec['organization'].find(search_data['organization']) != -1
-                        and
-                        rec['office_number'].find(search_data['office_number']) != -1
-                        and
-                        rec['personal_number'].find(search_data['personal_number']) != -1
-                        ):
+                rec_status = 0
+                for key in rec:
+                    if rec[key].find(search_data[key]) == -1:  # совпадение или 0 для записи
+                        break
+                    else:
+                        rec_status += 1
+                if rec_status == len(rec):  # Все записи при сравнении нашли совпадение или 0 (ср. с пустой строкой)
                     print_record(local_index, rec)
                 local_index += 1
             print_table_footer()
