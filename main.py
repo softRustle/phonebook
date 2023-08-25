@@ -13,7 +13,7 @@ def print_menu():
         1. Показать справочник
         2. Добавить контакт
         3. Изменить контакт
-        4. Найти контакт        
+        4. Найти контакт(ы)        
         5. Сгенерировать 20 контактов
 
         press ESC to exit''')
@@ -21,10 +21,17 @@ def print_menu():
 
 def print_table_header():
     print('''
-                                    ТЕЛЕФОННАЯ КНИГА
+                                            ТЕЛЕФОННАЯ КНИГА
 ================================================================================================================
 |№     | Имя      |  Фамилия    | Отчество   | Организация                        | Раб. номер | Личн. номер   |
 ________________________________________________________________________________________________________________   
+''')
+
+
+def print_table_footer():
+    print('''
+================================================================================================================
+  
 ''')
 
 
@@ -48,6 +55,27 @@ def cls():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
+def input_record():
+    print('\n')
+    record = {"first_name": input('Имя: '),
+              "last_name": input('Фамилия: '),
+              "father_name": input('Отчество: '),
+              "organization": input('Название организации: '),
+              "office_number": input('Рабочий номер: '),
+              "personal_number": input('Личный номер: ')}
+    return record
+
+
+def print_record(index, record):
+    print(f"|{str(index).ljust(6)[:6]}|"
+          f"{record['first_name'].ljust(10)[:10]}|"
+          f"{record['last_name'].ljust(13)[:13]}|"
+          f"{record['father_name'].ljust(12)[:12]}|"
+          f"{record['organization'].ljust(36)[:36]}|"
+          f"{record['office_number'].ljust(12)[:12]}|"
+          f"{record['personal_number'].ljust(15)[:15]}|")
+
+
 db_path = "data.json"
 # Загружает в память данные из файла
 try:
@@ -64,64 +92,69 @@ while True:
         case '1':
             cls()
             print_table_header()
-            index = 1
-            for record in dataList:
-                print(f"|{str(index).ljust(6)[:6]}|"
-                      f"{record['first_name'].ljust(10)[:10]}|"
-                      f"{record['last_name'].ljust(13)[:13]}|"
-                      f"{record['father_name'].ljust(12)[:12]}|"
-                      f"{record['organization'].ljust(36)[:36]}|"
-                      f"{record['office_number'].ljust(12)[:12]}|"
-                      f"{record['personal_number'].ljust(15)[:15]}|")
-                index += 1
-
+            local_index = 1
+            for rec in dataList:
+                print_record(local_index, rec)
+                local_index += 1
+            print_table_footer()
             click.pause()
             click.pause()
 
         case '2':
             cls()
             print('''
-                    Новый контакт
-    ========================================''')
-            dataList.append({"first_name": input('    Имя: '),
-                             "last_name": input('    Фамилия: '),
-                             "father_name": input('    Отчество: '),
-                             "organization": input('    Название организации: '),
-                             "office_number": input('    Рабочий номер: '),
-                             "personal_number": input('    Личный номер: ')})
-
+            Новый контакт
+========================================''')
+            dataList.append(input_record())
             rewrite_file(db_path, dataList)
-
             click.pause()
 
         case '3':
             cls()
-            index = input('Введите номер записи, которую хотите изменить: ')
-# ADD try except on converting user input or otherwise validate it!
-            if int(index) - 1 in range(0, len(dataList)):
+            local_index = input('Введите номер записи, которую хотите изменить: ')
+            # ADD try except on converting user input or otherwise validate it
+            if int(local_index) - 1 in range(0, len(dataList)):
                 print_table_header()
-                record = dataList[int(index) - 1]
-                print(f"|{str(index).ljust(6)[:6]}|"
-                      f"{record['first_name'].ljust(10)[:10]}|"
-                      f"{record['last_name'].ljust(13)[:13]}|"
-                      f"{record['father_name'].ljust(12)[:12]}|"
-                      f"{record['organization'].ljust(36)[:36]}|"
-                      f"{record['office_number'].ljust(12)[:12]}|"
-                      f"{record['personal_number'].ljust(15)[:15]}|")
+                rec = dataList[int(local_index) - 1]
+                print_record(local_index, rec)
+                print_table_footer()
+                new_data = input_record()
+                dataList[int(local_index) - 1] = new_data
+                rewrite_file(db_path,dataList)
             else:
                 print("Вы ввели некорректный номер. Уточните его и попробуйте снова.")
-            click.pause()
             click.pause()
 
         case '4':
             cls()
-            print("\n\nThis is for function 4")
+            print("Введите параметры поиска далее. Если какой-то параметр не нужен, нажимайте Enter")
+            search_data = input_record()
+            cls()
+            print_table_header()
+            local_index = 1
+            for rec in dataList:
+                if \
+                        (
+                        rec['first_name'].find(search_data['first_name']) != -1
+                        and
+                        rec['last_name'].find(search_data['last_name']) != -1
+                        and
+                        rec['father_name'].find(search_data['father_name']) != -1
+                        and
+                        rec['organization'].find(search_data['organization']) != -1
+                        and
+                        rec['office_number'].find(search_data['office_number']) != -1
+                        and
+                        rec['personal_number'].find(search_data['personal_number']) != -1
+                        ):
+                    print_record(local_index, rec)
+                local_index += 1
+            print_table_footer()
             click.pause()
 
         case '5':
             cls()
             source = "source.txt"
-
             try:
                 file = open(source, "r", encoding="utf-8")
             except FileNotFoundError:
